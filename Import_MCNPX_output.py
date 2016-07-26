@@ -12,6 +12,7 @@ Use this class to read in and process rmesh data output by mcnpx.
 import numpy as np
 import os
 import re
+import math
 from matplotlib.mlab import griddata
 import matplotlib.pyplot as plt
 
@@ -229,3 +230,94 @@ def Import_MCNPX_output(filename,
     
     tally_xyz = tally_xyz*DOSE_FACTOR
     return({'tally_xyz':tally_xyz, 'unc_xyz':unc_xyz, 'xb':xb, 'yb':yb, 'zb':zb, 'nps':nps})
+    
+def calc_centers_from_bounds(arr):
+    return (0.5*arr[0:-1] + 0.5*arr[1:])
+    
+def add_in_quadrature(fileList):
+    """ This adds the results and uncertainty in quadrature assuming equal weights.
+    fileList: a list of filenames containing mdata to add/average together"""
+    w = 1/len(fileList)    
+    o = Import_MCNPX_output(fileList[0])
+    doseArr = w*o['tally_xyz']
+    uncArr2 = np.power(w*o['tally_xyz']*o['unc_xyz'],2)
+    for i in np.arange(1,len(fileList)):
+        o=Import_MCNPX_output(fileList[i])
+        doseArr = doseArr+w*o['tally_xyz']
+        uncArr2 = uncArr2+np.power(w*o['tally_xyz']*o['unc_xyz'],2)
+    
+    return({'tally_xyz':doseArr,
+            'unc_xyz':np.sqrt(uncArr2)/doseArr,
+            'xb':o['xb'],
+            'yb':o['yb'],
+            'zb':o['zb'],
+            'nps':o['nps']})
+    
+
+def geometry_r_theta(r,theta,L=0.35):
+    """This calculates the geometry function according to TG43. 
+    r: radius in cm
+    theta: angle in degrees
+    L: active source length in cm
+    
+    @Reference:
+        Perez-Calatayud et al "Dose Calculation for Photon-Emitting Brachytherapy Sources with Average
+        Energy Higher than 50 keV: Full Report of the AAPM and ESTRO"
+        Report of the High Energy Brachytherapy Source Dosimetry (HEBD) Working Group
+        2012
+        
+    """
+    if (theta == 0):
+        return(1/(r*r-L/2*L/2))
+    else:    
+        thetaR = math.radians(theta)
+        beta1 = np.arccos( (r*math.cos(thetaR) - L/2)/math.sqrt(r*r+L/2*L/2-L*r*math.cos(thetaR)))
+        beta2 = np.arccos( (r*math.cos(thetaR) + L/2)/math.sqrt(r*r+L/2*L/2+L*r*math.cos(thetaR)))
+        return((beta1-beta2)/(L*r*math.sin(thetaR)))
+
+def F_r_theta(smesh_tally, r, theta, L=0.35, dr=0.001, dtheta=0.001):
+    """ calculate F(r,theta) given a smesh tally from MC.
+    smesh_tally: the tally_xyz output from Import_MCNPX_output
+    r: the radius in cm, where you want to evaluate the F(r,theta)
+    theta: the angle in degrees where you want to evaluate F(r,theta)
+    L: length (cm) of the active source
+    dr: tolerance for checking for radius equivalence in cm 
+        This is used to identify index in smesh_tally
+    dtheta: tolerance for checking for theta equivalence in cm
+        This is used to identify index in smesh_tally
+    """
+    rc = calc_centers_from_bounds(smesh_tally['xb'])
+    thetac = calc_centers_from_bounds(smesh_tally['yb'])
+    doseArr = smesh_tally['tally_xyz']
+    
+    #find r index
+    rindex = (rc < (r+dr)) & (rc > (r-dr))    
+    thetaindex = (thetac < (theta+dtheta)) & (thetac > (theta-dtheta))    
+    theta90index = (thetac < (90+dtheta)) & (thetac > (90-dtheta))
+    assert sum(rindex) != 0, "did not find rindex, check your r value and smesh_tally..."    
+    assert sum(rindex) == 1, "found more than 1 rindex, try decreasing dr..."
+    assert sum(thetaindex) != 0, "did not find thetaindex, check your theta value and smesh_tally..."    
+    assert sum(thetaindex) == 1, "found more than 1 thetaindex, try decreasing dtheta..."
+    assert sum(theta90index) != 0, "did not find 90index, check your theta value and smesh_tally..."    
+    assert sum(theta90index) == 1, "found more than 1 90index, try decreasing dtheta..."
+    
+    print("Asked for F({0},{1})".format(r,theta))    
+    print("Found F({0},{1})".format(rc[rindex],thetac[thetaindex]))
+    D_rtheta = doseArr[rindex,thetaindex,0]
+    D_r90 = doseArr[rindex, theta90index, 0]
+    G_r90 = geometry_r_theta(rc[rindex], thetac[theta90index], L=L)
+    G_rtheta = geometry_r_theta(rc[rindex], thetac[thetaindex], L=L)
+    
+    return(D_rtheta/D_r90*G_r90/G_rtheta)
+    
+
+def list_F_r_theta(smesh_tally, rlist, thetalist, drlist, dthetalist):
+    """ This just prints out a table of F(r,theta) defined by the list for you"""
+    res = np.ndarray([len(rlist), len(thetalist)], dtype=np.double)    
+    for i in np.arange(len(rlist)):
+        for j in np.arange(len(thetalist)):
+            res[i,j] = F_r_theta(smesh_tally, rlist[i], thetalist[j], dr=drlist[i], dtheta=dthetalist[j])
+            
+    return(res)
+    
+    
