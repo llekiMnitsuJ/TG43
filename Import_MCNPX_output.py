@@ -309,7 +309,37 @@ def F_r_theta(smesh_tally, r, theta, L=0.35, dr=0.001, dtheta=0.001):
     G_rtheta = geometry_r_theta(rc[rindex], thetac[thetaindex], L=L)
     
     return(D_rtheta/D_r90*G_r90/G_rtheta)
+
+def g_r(smesh_tally, r, L=0.35, dr=0.001, dtheta=0.001):
+    """calculate g_L(r)
+    smesh_tally: the tally_xyz output from Import_MCNPX_output
+    r: the radius in cm, where you want to evaluate the g_L(r)
+    L: active length of source in cm
+    """
+    rc = calc_centers_from_bounds(smesh_tally['xb'])    
+    thetac = calc_centers_from_bounds(smesh_tally['yb'])
+    doseArr = smesh_tally['tally_xyz']
     
+    #find r index
+    rindex = (rc < (r+dr)) & (rc > (r-dr))        
+    assert sum(rindex) != 0, "did not find rindex, check your r value and smesh_tally..."    
+    assert sum(rindex) == 1, "found more than 1 rindex, try decreasing dr..."
+    
+    #find r0 index
+    r0index = (rc < (1+dr)) & (rc > (1-dr))        
+    assert sum(r0index) != 0, "did not find rindex, check your r0 value and smesh_tally..."    
+    assert sum(r0index) == 1, "found more than 1 r0index, try decreasing dr..."
+
+    #find theta0 index    
+    theta90index = (thetac < (90+dtheta)) & (thetac > (90-dtheta))
+    assert sum(theta90index) != 0, "did not find 90index, check your theta value and smesh_tally..."    
+    assert sum(theta90index) == 1, "found more than 1 90index, try decreasing dtheta..."
+    
+    D_rtheta0 = doseArr[rindex, theta90index,0]
+    D_r0theta0 = doseArr[r0index, theta90index,0]
+    G_r090 = geometry_r_theta(rc[r0index],thetac[theta90index], L=L)  
+    G_r90 = geometry_r_theta(rc[rindex],thetac[theta90index], L=L)  
+    return(D_rtheta0/D_r0theta0*G_r090/G_r90)
 
 def list_F_r_theta(smesh_tally, rlist, thetalist, drlist, dthetalist):
     """ This just prints out a table of F(r,theta) defined by the list for you"""
