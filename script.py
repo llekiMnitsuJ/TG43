@@ -10,8 +10,9 @@ I have to remove the first entry in the data for mesh because it was a zero size
 import glob
 from Import_MCNPX_output import *
 
-directory = "/home/justin/I-125 MCNPX/mikell 2micron smesh results"
-fileList = glob.glob("{0}/mdata*".format(directory))
+#directory = "/home/justin/I-125 MCNPX/mikell 2micron smesh results"
+directory="G:\data\Agx100_I125"
+fileList = glob.glob("{0}\mdata*".format(directory))
 
 #import the mdata smesh results
 o = add_in_quadrature(fileList) #answer yes to implicit
