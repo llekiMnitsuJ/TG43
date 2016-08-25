@@ -310,7 +310,7 @@ def F_r_theta(smesh_tally, r, theta, L=0.35, dr=0.001, dtheta=0.001):
     
     return(D_rtheta/D_r90*G_r90/G_rtheta)
 
-def g_r(smesh_tally, r, L=0.35, dr=0.001, dtheta=0.001):
+def g_r(smesh_tally, r, L=0.35, dr=0.001, dtheta=0.001, dr0=0.001):
     """calculate g_L(r)
     smesh_tally: the tally_xyz output from Import_MCNPX_output
     r: the radius in cm, where you want to evaluate the g_L(r)
@@ -326,7 +326,7 @@ def g_r(smesh_tally, r, L=0.35, dr=0.001, dtheta=0.001):
     assert sum(rindex) == 1, "found more than 1 rindex, try decreasing dr..."
     
     #find r0 index
-    r0index = (rc < (1+dr)) & (rc > (1-dr))        
+    r0index = (rc < (1+dr0)) & (rc > (1-dr0))        
     assert sum(r0index) != 0, "did not find rindex, check your r0 value and smesh_tally..."    
     assert sum(r0index) == 1, "found more than 1 r0index, try decreasing dr..."
 
