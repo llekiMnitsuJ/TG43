@@ -1,0 +1,7 @@
+# From Solberg et al, Journal of Applied Clinical Medical Physics, Vol. 3, No. 2, Spring 2002
+seed_length_cm: 0.45
+effective_source_length_cm: 0.3
+seed_diameter_cm: 0.08
+dose_rate_constant_cGy_per_U_per_h: 0.962
+seed_model_name: IsoAid-I125A
+seed_radionuclide: I-125
