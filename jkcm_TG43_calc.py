@@ -86,6 +86,53 @@ class jkcm_TG43_calc:
         self.source_tip = np.zeros([3]) #physical tip of source
         self.source_bottom = np.zeros([3]) #physical bottom of source            
     
+    def __str__(self):
+        def align_field_num(name,value,valueString=False):
+            string_width=45
+            num_width=15
+            if(valueString==False):
+                tempStr="{:<"+str(string_width)+"s}{:>"+str(num_width)+"f}"
+            else:
+                tempStr="{:<"+str(string_width)+"s}{:>"+str(num_width)+"s}"
+            return(tempStr.format(name,value)+"\n")
+        
+        s = align_field_num("seed_length_cm", self.seed_length_cm)
+        s = s + align_field_num("eff_source_length_cm", self.eff_source_length_cm)
+        s = s + align_field_num("seed_diameter_cm", self.seed_diameter_cm)
+        s = s + align_field_num("dose_rate_constant_cGy_per_h_per_U", self.dose_rate_constant_cGy_per_h_per_U)
+        s = s + align_field_num("source_name_model", self.source_name_model, valueString=True)
+        s = s + align_field_num("radionuclide", self.radionuclide, valueString=True)
+        s = s + align_field_num("source_data_filename", self.source_data_filename, valueString=True)
+        s = s + align_field_num("aniso_filename", self.aniso_filename, valueString=True)
+        s = s + align_field_num("g_r_filename", self.g_r_filename, valueString=True)
+        s = s + "{:<45s}{:>10f}{:>10f}{:>10f}".format("source_center_cm",self.source_center[0], self.source_center[1], self.source_center[2])+"\n"
+        s = s + "{:<45s}{:>10f}{:>10f}{:>10f}".format("source_tip_cm",self.source_tip[0], self.source_tip[1], self.source_tip[2])+"\n"
+        s = s + "{:<45s}{:>10f}{:>10f}{:>10f}".format("source_bottom_cm",self.source_bottom[0], self.source_bottom[1], self.source_bottom[2])+"\n"
+        
+        return(s)
+    
+    def calc_eff_time(self, time_in_hours, infinite=False):
+        """This returns the effective time in hours of the implant. 
+        It does this by performing evaluating the analytic expression representing
+        a simple exponential integral"""
+        
+        half_life_h_dict = {}
+        half_life_h_dict["I-125"] = 59.4*24.
+        half_life_h_dict["Y-90"] = 64.1
+        half_life_h_dict["Ir-192"] = 73.8*24.
+        
+        assert self.radionuclide in half_life_h_dict.keys(), "{0} is not listed radionuclides!"
+        
+        hl_h = half_life_h_dict[self.radionuclide]
+        mu = np.log(2)/hl_h
+        if(infinite == True):
+            eff_t = 1/mu
+        else:
+            eff_t = -1/mu * (np.exp(-1*mu*time_in_hours) - 1)
+        
+        return(eff_t)
+
+    
     def eval_g_r_table(self, r):
         if(r < np.min(self.g_r_radii_cm)):
             return(self.g_r_table[0])
