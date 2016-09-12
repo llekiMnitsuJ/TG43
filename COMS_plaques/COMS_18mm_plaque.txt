@@ -1,5 +1,5 @@
 #18 mm plaque. Table 1 from  Chiu-Tsao et al Medical Physics, Vol. 39, No. 10, October 2012
-Seed_num x_c y_c z_c x_p y_p z_p angle_deg
+Seed_num x_c y_c z_c x_p1 y_p1 z_p1 x_p2 y_p2 z_p2 angle_deg
 1 -7.70 0.00 -0.03 -7.70 2.25 -0.03 -7.70 -2.25 -0.03 180
 2 -5.44 -5.44 -0.03 -7.04 -3.85 -0.03 -3.85 -7.04 -0.03 225
 3 0.00 -7.70 -0.03 -2.25 -7.70 -0.03 2.25 -7.70 -0.03 270
