@@ -103,7 +103,12 @@ class jkcm_samemodel_multisource_TG43:
             self.source_tip_dict[qid] = np.array([qxt,qyt,qzt], dtype=np.float)/10.
             self.source_dwell_time_dict[qid] = 1.
             self.source_strength_dict[qid] = 1.
-            
+    
+    def setStrengthsInU(self, Sk):
+        """ Sk should be in U. It is applied to all seeds in the collection"""
+        for i in self.source_strength_dict.keys():
+            self.source_strength_dict[i] = Sk
+    
             
         
         
