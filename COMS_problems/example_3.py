@@ -4,14 +4,14 @@ Created on Tue Sep 13 10:55:30 2016
 
 @author: jusmikel
 """
-
+import numpy as np
 #import the libraries
 #runfile('G:/data/src/TG43/jkcm_TG43_calc.py', wdir='G:/data/src/TG43')
 #runfile('G:/data/src/TG43/jkcm_samemodel_multisource_TG43.py', wdir='G:/data/src/TG43')
 
 #location of your TG43 data
 rootDir="G:\data\src\TG43"
-sourceDir=rootDir+"\sources\I125A"
+sourceDir=rootDir+"\sources\I125A_consensus"
 frthetafile = sourceDir+"\I125A_frtheta.txt"
 grfile = sourceDir+"\I125A_gr.txt"
 sourcedatafile = sourceDir+"\I125A_source_data.txt"
