@@ -1,0 +1,22 @@
+# From and Rivard et al TG43 update supplement Medical Physics, Vol. 34, No. 6, June 2007
+# AAPM consensus gr IsoAid Advantage IAI-125 Advantage g(r) (Table II)
+radius_cm g_r
+0.1 1.04
+0.15 1.053
+0.25 1.066
+0.5 1.080
+0.75 1.035
+1.0 1.000
+1.5 0.902
+2.0 0.800
+2.5 0.701
+3.0 0.611
+3.5 0.533
+4.0 0.468
+4.5 0.414
+5.0 0.368
+6.0 0.294
+7.0 0.227
+8.0 0.165
+9.0 0.141
+10.0 0.090
