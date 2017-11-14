@@ -68,15 +68,15 @@ class jkcm_TG43_calc:
         self.aniso_filename = None
         self.g_r_filename = None
                 
-        self.aniso_table_thetas_degree = np.zeros([1])
-        self.aniso_table_radii_cm = np.zeros([1])
-        self.aniso_table = np.zeros([1,1])
+        self.aniso_table_thetas_degree = None
+        self.aniso_table_radii_cm = None
+        self.aniso_table = None
         self.aniso_interp_table_obj = None
 
 
-        self.g_r_radii_cm = np.zeros([1])
-        self.g_r_poly = np.zeros([1]) #represents gr as  polynomial
-        self.g_r_table = np.zeros([1])
+        self.g_r_radii_cm = None
+        self.g_r_poly = None #represents gr as  polynomial
+        self.g_r_table = None
         self.g_r_interp_table_obj = None
         
         
@@ -91,6 +91,9 @@ class jkcm_TG43_calc:
         self.half_life_h_dict["I-125"] = 59.4*24.
         self.half_life_h_dict["Y-90"] = 64.1
         self.half_life_h_dict["Ir-192"] = 73.8*24.
+        self.half_life_h_dict["Cs-131"] = 9.7*24.
+        self.half_life_h_dict["Pd-103"] = 17*24.
+        
     
     def __str__(self):
         def align_field_num(name,value,valueString=False):
@@ -157,8 +160,8 @@ class jkcm_TG43_calc:
             return(self.g_r_interp_table_obj(r))
             
     def _build_g_r_interp_table(self, kind='linear'):
-        assert self.g_r_table != None, "please import the gr table first!"
-        assert self.g_r_radii_cm != None, "please import the gr table first!"
+        assert type(self.g_r_table) != type(None), "please import the gr table first!"
+        assert type(self.g_r_radii_cm) != type(None), "please import the gr table first!"
         #I catch the bounds error and correct via nearest neighbor extrapolation
         self.g_r_interp_table_obj = interpolate.interp1d(self.g_r_radii_cm, self.g_r_table, kind=kind, bounds_error=True)
         print("finished building interpolation object for g_r table evaluation!")
@@ -167,9 +170,9 @@ class jkcm_TG43_calc:
         return(self.aniso_interp_table_obj(r,theta))
 
     def _build_frtheta_interp_table(self, kind="linear", bounds_error=False):
-        assert self.aniso_table != None, "please import the anisotropy table first!"
-        assert self.aniso_table_radii_cm != None, "please import the anisotropy table first!"
-        assert self.aniso_table_thetas_degree != None, "please import the anisotropy table first!"
+        assert type(self.aniso_table) != type(None), "please import the anisotropy table first!"
+        assert type(self.aniso_table_radii_cm) != type(None), "please import the anisotropy table first!"
+        assert type(self.aniso_table_thetas_degree) != type(None), "please import the anisotropy table first!"
     
         r_arr = self.aniso_table_radii_cm
         th_arr = self.aniso_table_thetas_degree        
