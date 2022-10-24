@@ -1,0 +1,7 @@
+# from TPS BV except the seed_length
+seed_length_cm: 0.494
+effective_source_length_cm: 0.35
+seed_diameter_cm: 0.09
+dose_rate_constant_cGy_per_U_per_h: 1.117
+seed_model_name: Varian-GMPlus-vendor
+seed_radionuclide: Ir-192
