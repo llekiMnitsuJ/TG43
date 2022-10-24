@@ -27,7 +27,7 @@ Created on Fri Aug 26 10:36:16 2016
 import numpy as np
 import os
 import re
-from matplotlib.mlab import griddata
+from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
@@ -212,10 +212,13 @@ class jkcm_TG43_calc:
         return(result)
         
 
-    def _calc_to_point(self, pos, verbose=0):
+    def _calc_to_point(self, pos, verbose=0, paramMap=False):
         """perform a TG43 calculation
         pos: an np array of length 3. pos must be in the same units as self.source_center.
         This is typically cm. 
+        
+        paramMap: a boolean. When true, will return a map/dict containing all the information
+        used in the calculation. 
         
         doserate = (Sk)*(drc)*G(r,theta)/G(1,90)*g(r)*F(r,theta)
         
@@ -244,6 +247,33 @@ class jkcm_TG43_calc:
         
         result = drc*(grtheta/gr0theta0)*gr*frtheta
         
+        
+        paramMap = {}
+        paramMap['source_name_model'] = self.source_name_model
+        paramMap['frtheta_file'] = self.aniso_filename
+        paramMap['gr_filename'] = self.g_r_filename
+        paramMap['source_data_filename']=self.source_data_filename
+        paramMap['calcpt_pos'] = pos
+        paramMap['src_tip_pos'] = self.source_tip
+        paramMap['src_center_pos'] = self.source_center
+        paramMap['src_bottom_pos'] = self.source_bottom
+        paramMap['src_unit_vec'] = source_vec
+        paramMap['calcpt_minus_src_center_vec'] = point_vec
+        paramMap['along_distance'] = along
+        paramMap['along_vec'] = along_vec
+        paramMap['away_distance'] = away
+        paramMap['away_vec'] = away_vec
+        paramMap['theta'] = theta
+        paramMap['radius'] = r
+        paramMap['grtheta'] = grtheta
+        paramMap['gr0theta0'] = gr0theta0
+        paramMap['frtheta'] = frtheta[0]
+        paramMap['gr'] = gr
+        paramMap['doserateconstant'] = drc
+        paramMap['D(r,theta)/(U-h)'] = result[0]
+        
+        
+        
         if(verbose > 0):
             print("###########calc point: {0}".format(pos))
             print("###########src center: {0}".format(self.source_center))
@@ -257,9 +287,13 @@ class jkcm_TG43_calc:
             print("###########calculated F(r,theta): {0}".format(frtheta))            
             print("###########calculated g(r): {0}".format(gr))
             print("###########calculated drc: {0}".format(drc))
-        return(result)
+        
+        if(paramMap == False):
+            return(result)
+        else:
+            return(paramMap)
 
-    def calc_to_points(self, arr):
+    def calc_to_points(self, arr, verbose=0):
         """
         This calculates the doserate from the current source position to the 
         points defined in the arr. 
@@ -269,9 +303,83 @@ class jkcm_TG43_calc:
         Returns a an array of length n corresponding to the dose rate at each point 
         from the current source position and orientation.
         """
+        assert np.size(np.shape(arr)) == 2, "expected Nx3 array"
+        assert np.shape(arr)[1] == 3, "expected Nx3 array"
+        numPoints = np.shape(arr)[0]
+        resultArr = np.zeros(numPoints)
         
+        for i in np.arange(numPoints):
+            resultArr[i] = self._calc_to_point(arr[i,:],verbose=verbose)
         
+        return(resultArr)
+        
+  
+    def generate_handcalc_paramaters_table_for_points(self, arr, Sk_U, time_h, verbose=0, header=True):
+        assert np.size(np.shape(arr)) == 2, "expected Nx3 array"
+        assert np.shape(arr)[1] == 3, "expected Nx3 array"
+        numPoints = np.shape(arr)[0]
+        
+        s = self._generate_handcalc_parameters_table_for_point(arr[0,:], Sk_U, time_h, verbose=verbose)
+        for i in np.arange(numPoints-1):        
+            s += "\n" + self._generate_handcalc_parameters_table_for_point(arr[i+1,:], Sk_U, time_h, verbose=verbose, header=False)
+        return(s)
+        
+  
+    def _generate_handcalc_parameters_table_for_point(self, pos, Sk_U, time_h, verbose=0, header=True):
+            
+            q = self._calc_to_point(pos, verbose=verbose, paramMap=True)
+            
+            h = "source model"
+            r = q['source_name_model']
+            
+            h += ",calcpt X/cm, calcpt Y/cm, calcpt Z/cm"
+            x = q['calcpt_pos']
+            r += ",{0},{1},{2}".format(x[0],x[1],x[2])
     
+            h += ", src_bottom X/cm, src_bottom Y/cm, src_bottom Z/cm"
+            x = q['src_bottom_pos']
+            r += ",{0},{1},{2}".format(x[0],x[1],x[2])
+            
+            h += ", src_center X/cm, src_center Y/cm, src_center Z/cm"
+            x = q['src_center_pos']
+            r += ",{0},{1},{2}".format(x[0],x[1],x[2])
+            
+            h += ", src_tip X/cm, src_tip Y/cm, src_tip Z/cm"
+            x = q['src_tip_pos']
+            r += ",{0},{1},{2}".format(x[0],x[1],x[2])
+            
+            h += ", src_unit_vec X/cm, src_unit_vec Y/cm, src_unit_vec Z/cm"
+            x = q['src_unit_vec']
+            r += ",{0},{1},{2}".format(x[0],x[1],x[2])
+            
+            
+            h+= ",along_vec_x/cm,along_vec_y/cm,along_vec_z/cm, along_length/cm"
+            x = q['along_vec']
+            r+= ",{0},{1},{2},{3}".format(x[0],x[1],x[2],q['along_distance'])
+            
+            h+= ",away_vec_x/cm,away_vec_y/cm,away_vec_z/cm,away_length/cm"
+            x = q['away_vec']
+            r+= ",{0},{1},{2},{3}".format(x[0],x[1],x[2],q['away_distance'])
+            
+            h += ", src_center_to_calcpoint radius/cm"
+            r += ",{0}".format(q['radius'])
+            
+            h += ", angle between (src_tip - src_center) to calcpt / degrees"
+            r += ",{0}".format(q['theta'])
+            
+            h += ", G(r;theta), G(r_0;theta_0), g(r), F(r;theta), lambda (cGy/U), Sk(cGy*cm**2/h), dwell time(h), D(r;theta)/(U-h), D(r;theta)"
+            r += ",{0},{1},{2},{3},{4},{5},{6},{7},{8}".format(q['grtheta'],q['gr0theta0'],q['gr'],q['frtheta'],q['doserateconstant'],Sk_U,time_h, q['D(r,theta)/(U-h)'], q['D(r,theta)/(U-h)']*Sk_U*time_h)
+            
+            if(header == True):
+                r = h +"\n" + r
+            
+            return(r)
+                        
+
+            
+            
+            
+        
     def _calcCenter(self, arr):
         return(0.5*arr[0:-1]+0.5*arr[1:])
 
