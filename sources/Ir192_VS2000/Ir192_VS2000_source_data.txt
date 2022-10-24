@@ -1,0 +1,7 @@
+# from HEBD consenus data
+seed_length_cm: 0.7
+effective_source_length_cm: 0.5
+seed_diameter_cm: 0.059
+dose_rate_constant_cGy_per_U_per_h: 1.1
+seed_model_name: Varian-VS2000-HEBD
+seed_radionuclide: Ir-192
