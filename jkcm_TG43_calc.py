@@ -212,12 +212,12 @@ class jkcm_TG43_calc:
         return(result)
         
 
-    def _calc_to_point(self, pos, verbose=0, paramMap=False):
+    def _calc_to_point(self, pos, verbose=0, paramMapOut=False):
         """perform a TG43 calculation
         pos: an np array of length 3. pos must be in the same units as self.source_center.
         This is typically cm. 
         
-        paramMap: a boolean. When true, will return a map/dict containing all the information
+        paramMapOut: a boolean. When true, will return a map/dict containing all the information
         used in the calculation. 
         
         doserate = (Sk)*(drc)*G(r,theta)/G(1,90)*g(r)*F(r,theta)
@@ -237,7 +237,8 @@ class jkcm_TG43_calc:
         
         #determine theta
         theta = np.degrees(np.arccos(along/r))
-        print("r,theta = {0},{1}".format(r,theta))
+        if (verbose > 0):
+            print("r,theta = {0},{1}".format(r,theta))
         
         grtheta = self.G_r_theta(r,theta)
         gr0theta0 = self.G_r_theta(1,90)
@@ -245,7 +246,7 @@ class jkcm_TG43_calc:
         gr = self.eval_g_r_table(r)
         drc = self.dose_rate_constant_cGy_per_h_per_U
         
-        result = drc*(grtheta/gr0theta0)*gr*frtheta
+        result = drc*(grtheta/gr0theta0)*gr*frtheta[0]
         
         
         paramMap = {}
@@ -270,7 +271,7 @@ class jkcm_TG43_calc:
         paramMap['frtheta'] = frtheta[0]
         paramMap['gr'] = gr
         paramMap['doserateconstant'] = drc
-        paramMap['D(r,theta)/(U-h)'] = result[0]
+        paramMap['D(r,theta)/(U-h)'] = result
         
         
         
@@ -288,7 +289,7 @@ class jkcm_TG43_calc:
             print("###########calculated g(r): {0}".format(gr))
             print("###########calculated drc: {0}".format(drc))
         
-        if(paramMap == False):
+        if(paramMapOut == False):
             return(result)
         else:
             return(paramMap)
