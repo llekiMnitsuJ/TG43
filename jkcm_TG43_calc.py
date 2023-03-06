@@ -120,6 +120,15 @@ class jkcm_TG43_calc:
         
         return(s)
     
+    def print_anisotropy_table(self):
+        s = " radius(cm),, "+','.join(["%.3f" % i for i in self.aniso_table_radii_cm]) + '\n'
+        ts = "theta(deg),"+"{0:.3f},".format(self.aniso_table_thetas_degree[0])+','.join(["%.3f" % i for i in self.aniso_table[0,:]]) +'\n'
+        s += ts
+        for i in np.arange(len(self.aniso_table_thetas_degree)-1):
+            ts = ",{0:.3f},".format(self.aniso_table_thetas_degree[i+1])+','.join(["%.3f" % i for i in self.aniso_table[i+1,:]]) +'\n'
+            s += ts
+        print(s)
+        
     def calc_eff_time(self, time_in_hours, infinite=False):
         """This returns the effective time in hours of the implant. 
         It does this by performing evaluating the analytic expression representing
@@ -212,12 +221,12 @@ class jkcm_TG43_calc:
         return(result)
         
 
-    def _calc_to_point(self, pos, verbose=0, paramMapOut=False):
+    def _calc_to_point(self, pos, verbose=0, paramMap=False):
         """perform a TG43 calculation
         pos: an np array of length 3. pos must be in the same units as self.source_center.
         This is typically cm. 
         
-        paramMapOut: a boolean. When true, will return a map/dict containing all the information
+        paramMap: a boolean. When true, will return a map/dict containing all the information
         used in the calculation. 
         
         doserate = (Sk)*(drc)*G(r,theta)/G(1,90)*g(r)*F(r,theta)
@@ -249,29 +258,29 @@ class jkcm_TG43_calc:
         result = drc*(grtheta/gr0theta0)*gr*frtheta[0]
         
         
-        paramMap = {}
-        paramMap['source_name_model'] = self.source_name_model
-        paramMap['frtheta_file'] = self.aniso_filename
-        paramMap['gr_filename'] = self.g_r_filename
-        paramMap['source_data_filename']=self.source_data_filename
-        paramMap['calcpt_pos'] = pos
-        paramMap['src_tip_pos'] = self.source_tip
-        paramMap['src_center_pos'] = self.source_center
-        paramMap['src_bottom_pos'] = self.source_bottom
-        paramMap['src_unit_vec'] = source_vec
-        paramMap['calcpt_minus_src_center_vec'] = point_vec
-        paramMap['along_distance'] = along
-        paramMap['along_vec'] = along_vec
-        paramMap['away_distance'] = away
-        paramMap['away_vec'] = away_vec
-        paramMap['theta'] = theta
-        paramMap['radius'] = r
-        paramMap['grtheta'] = grtheta
-        paramMap['gr0theta0'] = gr0theta0
-        paramMap['frtheta'] = frtheta[0]
-        paramMap['gr'] = gr
-        paramMap['doserateconstant'] = drc
-        paramMap['D(r,theta)/(U-h)'] = result
+        paramMapOut = {}
+        paramMapOut['source_name_model'] = self.source_name_model
+        paramMapOut['frtheta_file'] = self.aniso_filename
+        paramMapOut['gr_filename'] = self.g_r_filename
+        paramMapOut['source_data_filename']=self.source_data_filename
+        paramMapOut['calcpt_pos'] = pos
+        paramMapOut['src_tip_pos'] = self.source_tip
+        paramMapOut['src_center_pos'] = self.source_center
+        paramMapOut['src_bottom_pos'] = self.source_bottom
+        paramMapOut['src_unit_vec'] = source_vec
+        paramMapOut['calcpt_minus_src_center_vec'] = point_vec
+        paramMapOut['along_distance'] = along
+        paramMapOut['along_vec'] = along_vec
+        paramMapOut['away_distance'] = away
+        paramMapOut['away_vec'] = away_vec
+        paramMapOut['theta'] = theta
+        paramMapOut['radius'] = r
+        paramMapOut['grtheta'] = grtheta
+        paramMapOut['gr0theta0'] = gr0theta0
+        paramMapOut['frtheta'] = frtheta[0]
+        paramMapOut['gr'] = gr
+        paramMapOut['doserateconstant'] = drc
+        paramMapOut['D(r,theta)/(U-h)'] = result
         
         
         
@@ -289,10 +298,10 @@ class jkcm_TG43_calc:
             print("###########calculated g(r): {0}".format(gr))
             print("###########calculated drc: {0}".format(drc))
         
-        if(paramMapOut == False):
+        if(paramMap == False):
             return(result)
         else:
-            return(paramMap)
+            return(paramMapOut)
 
     def calc_to_points(self, arr, verbose=0):
         """
