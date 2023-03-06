@@ -125,7 +125,7 @@ xposArray = np.array(
     )
 
 #match excel printout with RadCalc
-Sk_U = 29675.5
+Sk_U = 40700.
 dwell_h = 100./3600.
 s = o.generate_handcalc_paramaters_table_for_points(xposArray, Sk_U, dwell_h)
 
