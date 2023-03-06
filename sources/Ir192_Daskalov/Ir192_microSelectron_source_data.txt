@@ -1,0 +1,7 @@
+# from Daskalov et al 1998 MedPhys
+seed_length_cm: 0.45
+effective_source_length_cm: 0.36
+seed_diameter_cm: 0.09
+dose_rate_constant_cGy_per_U_per_h: 1.108
+seed_model_name: microSelectron-HDR
+seed_radionuclide: Ir-192
